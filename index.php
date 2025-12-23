@@ -360,3 +360,5 @@ function generate_history_chart_data($trainings) {
     </main>
 </body>
 </html>
+
+// aajakakakka
