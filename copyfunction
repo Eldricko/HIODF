@@ -29,7 +29,7 @@ function add_new_athlete($data) {
     return "Atlet berhasil ditambahkan!";
 }
 
-// --- Fungsi Perhitungan (Update tipe data ke FLOAT) ---
+// --- Fungsi Perhitungan (Update Klasifikasi IOD) ---
 function calculate_training_metrics($athleteId, $volRelatif, $rests, $trainingRows) {
     if (empty($athleteId) || $volRelatif === '') {
         return ['error' => 'Data atlet dan Volume Relatif harus diisi'];
@@ -37,14 +37,12 @@ function calculate_training_metrics($athleteId, $volRelatif, $rests, $trainingRo
 
     $athlete = $_SESSION['athletes'][$athleteId];
     $age = $athlete['age'];
-    
-    // UBAH KE FLOAT
     $volRelatif = (float)$volRelatif;
 
     // 1. Hitung HR Max
     $hrMax = 220 - $age;
 
-    // 2. Hitung Recovery (Total Rest) -> UBAH KE FLOAT
+    // 2. Hitung Recovery
     $totalRecovery = 0.0;
     foreach ($rests as $restTime) {
         $totalRecovery += (float)$restTime;
@@ -55,7 +53,7 @@ function calculate_training_metrics($athleteId, $volRelatif, $rests, $trainingRo
 
     // 4. Hitung Absolute Density (%)
     if ($volRelatif > 0) {
-        $absoluteDensity = (($volAbsolute - $totalRecovery) / $volAbsolute) * 100;
+        $absoluteDensity = (($volRelatif - $totalRecovery) / $volRelatif) * 100;
     } else {
         $absoluteDensity = 0;
     }
@@ -66,19 +64,15 @@ function calculate_training_metrics($athleteId, $volRelatif, $rests, $trainingRo
     $partialIntensities = [];
 
     foreach ($trainingRows as $index => $row) {
-        // UBAH KE FLOAT
         $durasi = (float)$row['duration']; 
         $hrp = (float)$row['hrp'];
         
-        // Partial Intensity
         $partial = 0;
         if ($hrMax > 0) {
             $partial = ($hrp / $hrMax) * 100;
         }
-        
         $partialIntensities[$index] = $partial;
 
-        // Akumulasi
         $sigmaWeightedIntensity += ($partial * $durasi);
         $sigmaVolumeExercise += $durasi;
     }
@@ -91,6 +85,22 @@ function calculate_training_metrics($athleteId, $volRelatif, $rests, $trainingRo
     // 6. Hitung IOD
     $iod = ($volAbsolute * $absoluteDensity * $overallIntensity) / 10000;
 
+    // 7. Tentukan Klasifikasi IOD (LOGIKA BARU)
+    $iodClass = '';
+    if ($iod >= 100) {
+        $iodClass = 'Super Maximal';
+    } elseif ($iod >= 90) {
+        $iodClass = 'Maximum';
+    } elseif ($iod >= 80) {
+        $iodClass = 'Hard';
+    } elseif ($iod >= 70) {
+        $iodClass = 'Medium';
+    } elseif ($iod >= 50) {
+        $iodClass = 'Low';
+    } else {
+        $iodClass = 'Very Low';
+    }
+
     return [
         'hrMax' => $hrMax,
         'recovery' => $totalRecovery,
@@ -98,6 +108,7 @@ function calculate_training_metrics($athleteId, $volRelatif, $rests, $trainingRo
         'absoluteDensity' => $absoluteDensity,
         'overallIntensity' => $overallIntensity,
         'iod' => $iod,
+        'iodClass' => $iodClass, // Return klasifikasi
         'partialIntensities' => $partialIntensities
     ];
 }
@@ -112,7 +123,7 @@ function submit_training_revision($athleteId, $formData, $calculatedMetrics, $tr
         'id' => time(),
         'date' => $formData['date'],
         'observer' => $formData['observer'],
-        'volRelatif' => (float)$formData['volRelatif'], // Float
+        'volRelatif' => (float)$formData['volRelatif'],
         
         'recovery' => $calculatedMetrics['recovery'],
         'volAbsolute' => $calculatedMetrics['volAbsolute'],
@@ -120,6 +131,7 @@ function submit_training_revision($athleteId, $formData, $calculatedMetrics, $tr
         'absoluteDensity' => $calculatedMetrics['absoluteDensity'],
         'overallIntensity' => $calculatedMetrics['overallIntensity'],
         'iod' => $calculatedMetrics['iod'],
+        'iodClass' => $calculatedMetrics['iodClass'], // SIMPAN KE HISTORY
         
         'details' => $trainingDetails,
         'performance' => number_format($calculatedMetrics['iod'], 2),
@@ -136,12 +148,10 @@ function get_statistics($athletes) {
     $totalAthletes = count($athletes);
     $totalTrainings = 0;
     $totalIOD = 0;
-
     foreach ($athletes as $athlete) {
         $totalIOD += (float)$athlete['lastPerformance'];
         $totalTrainings += count($athlete['trainings']);
     }
-
     $avgIOD = $totalAthletes > 0 ? number_format($totalIOD / $totalAthletes, 2) : 0;
     return compact('totalAthletes', 'avgIOD', 'totalTrainings');
 }

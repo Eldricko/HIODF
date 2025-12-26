@@ -17,6 +17,12 @@ $observers = ['Coach Budi', 'Coach Sarah', 'Coach Dimas'];
 $message = null;
 $calculatedResult = null;
 
+// Helper untuk Class CSS berdasarkan string Status
+function getBadgeClass($status) {
+    $slug = strtolower(str_replace(' ', '-', $status));
+    return "badge-$slug";
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Handle Add Athlete
@@ -26,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $currentPage = 'dashboard';
     }
 
-    // Handle Calculate & Submit Training
+    // Handle Calculate & Submit
     elseif (isset($_POST['calculate']) || isset($_POST['submit_training'])) {
         $athleteId = $_POST['athleteId'];
         $volRelatif = $_POST['volRelatif'];
@@ -49,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($phases as $index => $phase) {
                 $trainingDetails[] = [
                     'phase' => $phase,
-                    // Simpan sebagai float di history
                     'duration' => (float)($_POST['duration'][$index] ?? 0),
                     'set' => $_POST['set'][$index] ?? 0,
                     'hrp' => $_POST['hrp'][$index] ?? 0,
@@ -75,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Chart Functions
+// Chart Functions (Sama seperti sebelumnya)
 function generate_google_chart_data($data) {
     $rows = [];
     foreach ($data as $item) { $rows[] = "['{$item['name']}', {$item['performa']}]"; }
@@ -90,8 +95,6 @@ function generate_history_chart_data($trainings) {
     return '[' . implode(', ', $rows) . ']';
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="id">
@@ -228,16 +231,15 @@ function generate_history_chart_data($trainings) {
                                     <tr>
                                         <td style="font-weight: bold; background:#f9fafb;"><?= $phase ?></td>
                                         <td><input type="number" step="0.01" name="duration[]" value="<?= $_POST['duration'][$index] ?? '' ?>" class="table-input" placeholder="mnt"></td>
-                                        <td><input type="number" name="set[]" value="<?= $_POST['set'][$index] ?? '' ?>" class="table-input" ></td>
+                                        <td><input type="number" name="set[]" value="<?= $_POST['set'][$index] ?? '' ?>" class="table-input" placeholder="1"></td>
                                         <td><input type="number" name="hrp[]" value="<?= $_POST['hrp'][$index] ?? '' ?>" class="table-input"></td>
                                     </tr>
-                                    
                                     <?php if ($index < count($phases)): ?>
                                     <tr class="rest-row">
                                         <td colspan="4">
                                             <div style="display: flex; align-items: center; gap: 10px;">
                                                 <span style="color: #c2410c; font-weight:bold;">REST (mnt):</span>
-                                                <input type="number" step="0.01" name="rest[]" value="<?= $_POST['rest'][$index] ?? 0 ?>" class="form-input" style="width: 100px;">
+                                                <input type="number" step="0.01" name="rest[]" value="<?= $_POST['rest'][$index] ?? 0 ?>" class="form-input" style="width: 80px;">
                                             </div>
                                         </td>
                                     </tr>
@@ -260,6 +262,10 @@ function generate_history_chart_data($trainings) {
                         <div style="text-align: center; margin-bottom: 2rem; border-bottom: 2px dashed #cbd5e1; padding-bottom: 1.5rem;">
                             <p style="font-size: 1rem; color: #64748b; margin-bottom: 0.5rem;">IOD (Index of Difficulty)</p>
                             <p class="iod-highlight"><?= number_format($calculatedResult['iod'], 2) ?></p>
+                            
+                            <span class="iod-badge <?= getBadgeClass($calculatedResult['iodClass']) ?>">
+                                <?= $calculatedResult['iodClass'] ?>
+                            </span>
                         </div>
 
                         <div class="form-grid">
@@ -299,15 +305,21 @@ function generate_history_chart_data($trainings) {
                 <h3>Riwayat Latihan</h3>
                 <?php foreach (array_reverse($selectedAthlete['trainings']) as $t): ?>
                     <div class="training-detail">
-                        <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
                             <div>
                                 <strong><?= $t['date'] ?></strong> | Observer: <?= $t['observer'] ?>
                             </div>
                             <div style="text-align: right;">
                                 <span style="font-size: 0.8rem; color: #64748b;">IOD SCORE</span><br>
-                                <span style="font-size: 1.5rem; font-weight: bold; color: #7c3aed;">
+                                <span style="font-size: 1.5rem; font-weight: bold; color: #1e293b;">
                                     <?= isset($t['iod']) ? number_format($t['iod'], 2) : ($t['performance'] ?? '-') ?>
                                 </span>
+                                
+                                <?php if(isset($t['iodClass'])): ?>
+                                    <br><span class="iod-badge <?= getBadgeClass($t['iodClass']) ?>" style="font-size: 1.2rem; padding: 2px 8px;">
+                                        <?= $t['iodClass'] ?>
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </div>
                         
@@ -316,7 +328,6 @@ function generate_history_chart_data($trainings) {
                             <div class="history-item"><p class="label">Abs. Density</p><p class="value"><?= number_format($t['absoluteDensity'], 2) ?>%</p></div>
                             <div class="history-item"><p class="label">Ov. Intensity</p><p class="value"><?= number_format($t['overallIntensity'], 2) ?>%</p></div>
                             <div class="history-item"><p class="label">Vol Absolute</p><p class="value"><?= number_format($t['volAbsolute'], 2) ?></p></div>
-                            <div class="history-item"><p class="label">Vol Relative</p><p class="value"><?= number_format($t['recovery'], 2) ?></p></div>
                         </div>
                         <?php endif; ?>
 
