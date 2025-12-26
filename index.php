@@ -579,7 +579,7 @@ function generate_monthly_average_chart_data($athletes) {
                             <div>
                                 <strong style="color: var(--primary);"><?= $t['date'] ?></strong> | Observer: <span style="color: var(--text-muted);"><?= $t['observer'] ?></span>
 
-                                 Observer: <span style="color: var(--text-muted);"><?= $t['manual_category'] ?></span>
+                                 Klasifikasi: <span style="color: var(--text-muted);"><?= $t['manual_category'] ?></span>
                             </div>
                             <div style="text-align: right;">
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">IOD SCORE</span><br>
