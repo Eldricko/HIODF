@@ -273,7 +273,7 @@ function generate_monthly_average_chart_data($athletes) {
 </head>
 <body>
 
-    <header><div class="container"><h1>Sistem Pelatihan Atlet</h1></div></header>
+    <header><div class="container"><h1>Human Indicator Overview Device</h1></div></header>
 
     <nav>
         <div class="container">
@@ -473,9 +473,7 @@ function generate_monthly_average_chart_data($athletes) {
                         </div>
                     </div>
                     
-                    <div style="margin-top: 1rem; padding: 0.75rem; background-color: #f1f5f9; border-radius: 0.5rem; border: 1px dashed #cbd5e1; font-size: 0.875rem; color: #475569;">
-                        ℹ️ <strong>Volume Relatif (Total Waktu Sesi)</strong> akan dihitung otomatis dari total Durasi Latihan dan Durasi Rest di bawah.
-                    </div>
+                 
 
                     <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
 
@@ -580,6 +578,8 @@ function generate_monthly_average_chart_data($athletes) {
                         <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.5); padding: 1rem; border-bottom: 1px solid var(--border);">
                             <div>
                                 <strong style="color: var(--primary);"><?= $t['date'] ?></strong> | Observer: <span style="color: var(--text-muted);"><?= $t['observer'] ?></span>
+
+                                 Observer: <span style="color: var(--text-muted);"><?= $t['manual_category'] ?></span>
                             </div>
                             <div style="text-align: right;">
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">IOD SCORE</span><br>
