@@ -576,11 +576,33 @@ function generate_monthly_average_chart_data($athletes) {
                 <?php foreach (array_reverse($selectedAthlete['trainings']) as $t): ?>
                     <div class="training-detail" style="margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
                         <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.5); padding: 1rem; border-bottom: 1px solid var(--border);">
-                            <div>
-                                <strong style="color: var(--primary);"><?= $t['date'] ?></strong> | Observer: <span style="color: var(--text-muted);"><?= $t['observer'] ?></span>
+                           <div>
+                            <strong style="color: var(--primary); font-size: 1.1rem;">
+                                <?= $t['date'] ?>
+                            </strong> 
+                            <span style="color: var(--text-muted); margin-left: 5px;">
+                                | Observer: <?= $t['observer'] ?>
+                            </span>
 
-                                 Klasifikasi: <span style="color: var(--text-muted);"><?= $t['manual_category'] ?></span>
-                            </div>
+                            <br>
+
+                            <?php 
+                                $manualLabel = $t['manual_category'] ?? '-';
+                                
+                                // Logika Warna Badge
+                                $badgeColorClass = 'badge-very-low'; // Default
+                                if ($manualLabel === 'Berat') {
+                                    $badgeColorClass = 'badge-hard';
+                                } elseif ($manualLabel === 'Sedang') {
+                                    $badgeColorClass = 'badge-medium';
+                                } elseif ($manualLabel === 'Ringan') {
+                                    $badgeColorClass = 'badge-low';
+                                }
+                            ?>
+                            <span class="iod-badge <?= $badgeColorClass ?>" style="font-size: 0.75rem; padding: 3px 8px; margin-top: 5px;">
+                                <?= htmlspecialchars($manualLabel) ?>
+                            </span>
+                        </div>
                             <div style="text-align: right;">
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">IOD SCORE</span><br>
                                 <span style="font-size: 1.5rem; font-weight: bold; color: white;">
